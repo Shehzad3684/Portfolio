@@ -1,0 +1,2209 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Shehzad Waseem | AI Student Portfolio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/face-landmarks-detection"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            playfair: ['Playfair Display', 'serif'],
+            montserrat: ['Montserrat', 'sans-serif'],
+          },
+          colors: {
+            darkbg: '#0f172a',
+            darkcard: 'rgba(20, 30, 50, 0.8)',
+            darktext: '#cbd5e1',
+            accent1: '#4f9de8',
+            accent2: '#3572b0',
+            accent3: '#255a81',
+            accent4: '#1e4060',
+            accent5: '#174259',
+            panelbg: 'rgba(20, 30, 50, 0.8)',
+            aiAccent: '#62dafb',
+            aiAccentDark: '#21a1f1',
+            aiAccentLight: '#a3e5ff',
+          },
+          animation: {
+            'pulse-slow': 'pulse 4s ease-in-out infinite',
+            'spin-slow': 'spin 15s linear infinite',
+            'fade-in-up': 'fadeInUp 1s ease forwards',
+          },
+          keyframes: {
+            fadeInUp: {
+              '0%': { opacity: '0', transform: 'translateY(20px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+          },
+          boxShadow: {
+            aiGlow: '0 0 15px rgba(98, 218, 251, 0.7)',
+            aiInnerGlow: 'inset 0 0 10px rgba(98, 218, 251, 0.6)',
+          }
+        },
+      },
+    }
+  </script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Playfair+Display:wght@700&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"
+    rel="stylesheet"
+  />
+  <style>
+    /* AI Theme Animations */
+    @keyframes neuralPulse {
+      0% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 10px #62dafb; }
+      50% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 20px #62dafb, 0 0 40px rgba(98, 218, 251, 0.4); }
+      100% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 10px #62dafb; }
+    }
+
+    @keyframes dataFlow {
+      0% { transform: translateX(-100%); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translateX(100%); opacity: 0; }
+    }
+
+    @keyframes aiGlow {
+      0% { box-shadow: 0 0 10px #62dafb; }
+      50% { box-shadow: 0 0 25px #21a1f1; }
+      100% { box-shadow: 0 0 10px #62dafb; }
+    }
+
+    .ai-node {
+      display: none;
+    }
+
+    .ai-node:hover {
+      transform: scale(1.5);
+      box-shadow: 0 0 20px #62dafb;
+      z-index: 10;
+    }
+
+    .ai-connection {
+      height: 2px;
+      background: linear-gradient(90deg, #62dafb, #21a1f1);
+      position: absolute;
+      transform-origin: left;
+      animation: dataFlow 3s infinite;
+    }
+
+    .ai-tooltip {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .ai-tooltip-popup {
+      position: absolute;
+      background: rgba(15, 23, 42, 0.95);
+      color: #62dafb;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      z-index: 1000;
+      pointer-events: none;
+      box-shadow: 0 0 15px rgba(98, 218, 251, 0.3);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(98, 218, 251, 0.2);
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.3s ease;
+    }
+
+    .ai-tooltip:hover .ai-tooltip-popup {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .ai-animated-icon {
+      transition: transform 0.3s ease;
+    }
+
+    .ai-icon-animate {
+      transform: scale(1.2);
+      color: #62dafb;
+      animation: aiGlow 2s infinite;
+    }
+
+    /* Root and base */
+    html, body {
+      height: 100%;
+      margin: 0;
+      scroll-behavior: smooth;
+      background: linear-gradient(135deg, #0a0a2a 0%, #1a1a4f 100%);
+      color: #cbd5e1;
+      font-family: 'Montserrat', sans-serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Playfair Display', serif;
+      color: #62dafb;
+      text-shadow: 0 0 8px #21a1f1;
+      user-select: none;
+    }
+    main {
+      height: auto;
+      overflow-y: visible;
+      -webkit-overflow-scrolling: touch;
+      scroll-padding-top: 5.5rem;
+      scrollbar-width: thin;
+      scrollbar-color: #2196f3 transparent;
+      position: relative;
+      z-index: 10;
+      padding: 2rem 1rem;
+      display: flex;
+      justify-content: center;
+    }
+    main > .content-container {
+      max-width: 1080px;
+      width: 100%;
+      background-color: rgba(20, 20, 60, 0.85);
+      border-radius: 20px;
+      padding: 4rem 4.5rem;
+      box-shadow: 0 10px 40px rgba(88, 88, 255, 0.4), 0 0 100px rgba(138, 43, 226, 0.2);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      user-select: text;
+      position: relative;
+      z-index: 20;
+      transition: background-color 0.4s ease;
+    }
+    main::-webkit-scrollbar {
+      width: 9px;
+      border-radius: 8px;
+    }
+    main::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    main::-webkit-scrollbar-thumb {
+      background-color: #2196f3;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      background-clip: content-box;
+      transition: background-color 0.3s ease;
+    }
+    main::-webkit-scrollbar-thumb:hover {
+      background-color: #62dafb;
+    }
+    section {
+      min-height: auto;
+      padding-top: 6.5rem;
+      padding-bottom: 6.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      box-sizing: border-box;
+      user-select: text;
+      scroll-margin-top: 5.5rem;
+      width: 100%;
+    }
+    @media (max-width: 768px) {
+      main > .content-container {
+        padding: 2rem 2rem;
+        border-radius: 1rem;
+      }
+      section {
+        padding-top: 5rem;
+        padding-bottom: 5rem;
+      }
+    }
+    a {
+      color: #62dafb;
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    a:hover {
+      color: #21a1f1;
+      text-decoration: underline;
+    }
+    /* Header */
+    header {
+      margin: 1rem;
+      background-color: rgba(20, 20, 60, 0.85);
+      border: 1px solid rgba(138, 43, 226, 0.3);
+      position: fixed;
+      width: 100%;
+      z-index: 10000;
+      top: 0;
+      left: 0;
+      padding: 1.5rem 4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #62dafb;
+      font-weight: 700;
+      font-family: 'Playfair Display', serif;
+      letter-spacing: 0.12em;
+      user-select: none;
+      backdrop-filter: saturate(180%) blur(24px);
+      -webkit-backdrop-filter: saturate(180%) blur(24px);
+      box-shadow: 0 4px 20px rgba(138, 43, 226, 0.3);
+      transition: background-color 0.3s ease;
+    }
+    header a.logo {
+      font-size: 2.5rem;
+      letter-spacing: 0.15em;
+      cursor: pointer;
+      color: #62dafb;
+      transition: color 0.4s ease;
+      user-select: none;
+    }
+    header a.logo:hover {
+      color: #21a1f1;
+    }
+    nav a {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      background: transparent;
+      transition: all 0.3s ease;
+      margin-left: 1.5rem;
+      font-weight: 600;
+      font-size: 1.1rem;
+      text-transform: uppercase;
+      color: #96e0fc;
+      letter-spacing: 0.09em;
+      position: relative;
+      transition: color 0.3s ease;
+    }
+    nav a:hover,
+    nav a.active {
+      background: rgba(138, 43, 226, 0.15);
+      transform: translateY(-2px);
+      color: #62dafb;
+    }
+    nav a::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 3px;
+      background-color: #62dafb;
+      bottom: -6px;
+      left: 0;
+      transition: width 0.3s ease;
+      border-radius: 2px;
+    }
+    nav a:hover::after,
+    nav a.active::after {
+      width: 100%;
+    }
+    /* Section headings */
+    h2.section-title {
+      margin: 2rem 0 4rem;
+      font-size: 3.6rem;
+      margin-bottom: 3rem;
+      text-align: center;
+      user-select: none;
+      color: #62dafb;
+      text-shadow: 0 0 10px #21a1f1;
+    }
+    /* Content Wrapper */
+    .content-wrapper {
+      padding: 0 2rem;
+      color: #dbe9ff;
+      font-size: 1.3rem;
+      line-height: 1.75;
+      max-width: 900px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .content-wrapper strong {
+      color: #8fcef9;
+    }
+    ul.list-disc {
+      padding: 1rem 2rem;
+      margin-left: 1.5rem;
+      margin-top: 0.75rem;
+      color: #c6e0ff;
+    }
+    ul.list-disc li {
+      margin-bottom: 0.6rem;
+    }
+    /* Subheading for projects & skills */
+    h3.subheading {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      user-select: none;
+      color: #62dafb;
+      text-shadow: 0 0 7px #21a1f1;
+    }
+    h3.subheading i {
+      color: #21a1f1;
+      transform: translateY(2px);
+    }
+    /* Quote section */
+    .quote-section {
+      margin: 4rem auto;
+      background-color: rgba(30, 41, 59, 0.75);
+      border-radius: 1.5rem;
+      padding: 3.5rem 3rem;
+      border: 1px solid #8a2be2;
+      box-shadow: 0 0 30px rgba(138, 43, 226, 0.4), inset 0 0 20px rgba(65, 105, 225, 0.2);
+      font-style: italic;
+      font-weight: 700;
+      font-size: 1.8rem;
+      color: #b0d8ff;
+      text-align: center;
+      font-family: 'Playfair Display', serif;
+      user-select: none;
+      max-width: 46rem;
+      margin-left: auto;
+      margin-right: auto;
+      user-drag: none;
+      position: relative;
+      z-index: 20;
+      letter-spacing: 0.05em;
+    }
+    /* Contact links */
+    .contact-link {
+      margin: 1rem 0;
+      display: flex;
+      align-items: center;
+      gap: 1.1rem;
+      font-size: 1.1rem;
+      color: #62dafb;
+      transition: color 0.3s ease;
+      user-select: text;
+      cursor: pointer;
+      padding: 0.6rem 1rem;
+      border-radius: 1rem;
+      user-drag: none;
+      box-shadow: 0 0 12px rgba(98, 218, 251, 0.3);
+      transition: all 0.4s ease;
+      word-break: break-all;
+      max-width: 100%;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .contact-link:hover {
+      color: #21a1f1;
+      box-shadow: 0 0 20px #21a1f1bb;
+      background-color: rgba(138, 43, 226, 0.15);
+      transform: translateY(-3px);
+    }
+    .contact-link i {
+      font-size: 2rem;
+      min-width: 2rem;
+      text-align: center;
+      filter: drop-shadow(0 0 4px #62dafbcc);
+    }
+    /* Cursor follower */
+    .skill-bar-inner::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(98, 218, 251, 0.4), transparent);
+      animation: shimmer 2s infinite;
+      filter: blur(4px);
+    }
+
+    .skill-bar:hover .ai-node::before {
+      display: none;
+    }
+
+    @keyframes pulseGlow {
+      0%, 50%, 100% { transform: none; opacity: 1; }
+    }
+
+    .skill-bar:hover .skill-bar-inner {
+      transform: scaleX(1.02);
+      filter: none;
+    }
+
+    .skill-bar {
+      position: relative;
+      overflow: visible;
+      transition: all 0.3s ease;
+    }
+
+    .skill-bar:hover {
+      transform: translateX(5px);
+    }
+
+
+
+    .skill-bar .floating-particle {
+      display: none;
+    }
+
+    @keyframes floatParticle {
+      0% { transform: translate(0, 0); opacity: 0; }
+      25% { opacity: 0.5; }
+      75% { opacity: 0.5; }
+      100% { transform: translate(var(--moveX, 50px), var(--moveY, -30px)); opacity: 0; }
+    }
+
+    .skill-bar:hover .floating-particle {
+      opacity: 1;
+    }
+
+    @keyframes shimmer {
+      100% { left: 100%; }
+    }
+
+    @keyframes cursorPulse {
+      0% { transform: scale(1); opacity: 0.8; }
+      50% { transform: scale(1.5); opacity: 0.4; }
+      100% { transform: scale(1); opacity: 0.8; }
+    }
+    .scroll-reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .scroll-reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .particles-js {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    #cursor-follower {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 28px;
+      height: 28px;
+      background-color: #62dafb;
+      border-radius: 8px;
+      pointer-events: none;
+      mix-blend-mode: difference;
+      transform: translate3d(0, 0, 0);
+      transition: background-color 0.3s ease;
+      z-index: 9999;
+      will-change: transform;
+      box-shadow: 0 0 18px #62dafbcc;
+      user-select: none;
+    }
+    /* Skill bars */
+    .skill-bar {
+      margin: 1.5rem 0;
+      background-color: #224a74;
+      border-radius: 0.75rem;
+      height: 1.5rem;
+      margin-top: 0.6rem;
+      overflow: hidden;
+      box-shadow: inset 0 0 10px #1b3a5aaa;
+    }
+    .project-card {
+      padding: 2rem;
+      margin: 2rem 0;
+      background: rgba(20, 20, 60, 0.5);
+      border: 1px solid rgba(138, 43, 226, 0.2);
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transform: translateY(30px);
+      opacity: 0;
+      transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .project-card.visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    .project-card:hover {
+      background: rgba(20, 20, 60, 0.7);
+      border-color: rgba(138, 43, 226, 0.4);
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(33, 161, 241, 0.3);
+    }
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .skill-bar-inner {
+      position: relative;
+      overflow: hidden;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #8a2be2, #4169e1);
+      border-radius: 0.75rem;
+      box-shadow: 0 0 16px #62dafb88;
+      transition: width 2s ease-in-out;
+    }
+    /* Typed text hero */
+    .typed-text {
+      color: #62dafb;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1.8rem;
+      letter-spacing: 0.04em;
+      height: 2.5rem;
+      margin-top: 0.4rem;
+      min-height: 2.5rem;
+      user-select: none;
+      text-shadow: 0 0 10px #21a1f1;
+      filter: drop-shadow(0 0 5px #62dafbba);
+    }
+    /* Back to top button */
+    #back-to-top {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #62dafb;
+      border-radius: 50%;
+      width: 3.75rem;
+      height: 3.75rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      box-shadow: 0 0 18px #62dafbbb;
+      transition: background-color 0.3s ease;
+      z-index: 9999;
+      opacity: 0;
+      visibility: hidden;
+      user-select: none;
+    }
+    #back-to-top.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+    #back-to-top:hover {
+      background: #21a1f1;
+      box-shadow: 0 0 24px #21a1f1cc;
+    }
+    /* Dark mode toggle */
+    #dark-mode-toggle {
+      cursor: pointer;
+      color: #62dafb;
+      font-size: 1.9rem;
+      transition: color 0.4s ease;
+      user-select: none;
+      margin-left: 1.5rem;
+      display: flex;
+      align-items: center;
+    }
+    #dark-mode-toggle:hover {
+      color: #21a1f1;
+    }
+    /* Mobile Navigation */
+    .mobile-menu-btn {
+      display: none;
+      font-size: 1.5rem;
+      color: #62dafb;
+      cursor: pointer;
+      transition: color 0.3s ease;
+      z-index: 100;
+    }
+    .mobile-menu-btn:hover {
+      color: #21a1f1;
+    }
+    @media (max-width: 768px) {
+      header {
+      margin: 1rem;
+        padding: 1rem 2rem;
+        justify-content: space-between;
+      }
+      .mobile-menu-btn {
+        display: block;
+      }
+      nav {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 70%;
+        height: 100vh;
+        background: rgba(12, 19, 39, 0.98);
+        backdrop-filter: blur(10px);
+        padding: 5rem 2rem;
+        transition: right 0.4s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 2rem;
+        box-shadow: -5px 0 20px rgba(0,0,0,0.3);
+      }
+      nav.active {
+        right: 0;
+      }
+      nav a {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      background: transparent;
+      transition: all 0.3s ease;
+        margin: 0;
+        font-size: 1.2rem;
+        opacity: 0;
+        transform: translateX(20px);
+        transition: all 0.4s ease;
+      }
+      nav.active a {
+        opacity: 1;
+        transform: translateX(0);
+      }
+      #dark-mode-toggle {
+        margin: 1rem 0 0 0;
+      }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Neural Network Visualization
+    function initNeuralNetwork() {
+      const canvas = document.getElementById('neural-network');
+      const ctx = canvas.getContext('2d');
+      let layers = [4, 6, 6, 3];
+      
+      function drawNetwork() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const layerGap = canvas.width / (layers.length + 1);
+        const nodeRadius = 15;
+        
+        // Draw nodes and connections
+        for(let i = 0; i < layers.length; i++) {
+          const x = (i + 1) * layerGap;
+          const nodeGap = canvas.height / (layers[i] + 1);
+          
+          for(let j = 0; j < layers[i]; j++) {
+            const y = (j + 1) * nodeGap;
+            
+            // Draw connections to previous layer
+            if(i > 0) {
+              const prevLayerGap = canvas.height / (layers[i-1] + 1);
+              for(let k = 0; k < layers[i-1]; k++) {
+                ctx.beginPath();
+                ctx.moveTo(x - layerGap, (k + 1) * prevLayerGap);
+                ctx.lineTo(x, y);
+                ctx.strokeStyle = '#62dafb33';
+                ctx.stroke();
+              }
+            }
+            
+            // Draw node
+            ctx.beginPath();
+            ctx.arc(x, y, nodeRadius, 0, Math.PI * 2);
+            ctx.fillStyle = '#62dafb';
+            ctx.fill();
+            ctx.strokeStyle = '#21a1f1';
+            ctx.stroke();
+          }
+        }
+      }
+      
+      // Add event listeners
+      document.getElementById('add-layer').addEventListener('click', () => {
+        layers.splice(layers.length-1, 0, 5);
+        drawNetwork();
+      });
+      
+      document.getElementById('remove-layer').addEventListener('click', () => {
+        if(layers.length > 3) {
+          layers.splice(layers.length-2, 1);
+          drawNetwork();
+        }
+      });
+      
+      drawNetwork();
+    }
+    
+    // Data Visualization
+    function initDataViz() {
+      // Scatter Plot
+      const scatterCtx = document.getElementById('scatter-plot').getContext('2d');
+      const scatterData = {
+        datasets: [{
+          label: 'Training Data',
+          data: Array.from({length: 50}, () => ({
+            x: Math.random() * 100,
+            y: Math.random() * 100
+          })),
+          backgroundColor: '#62dafb55',
+          borderColor: '#21a1f1'
+        }]
+      };
+      
+      const scatterPlot = new Chart(scatterCtx, {
+        type: 'scatter',
+        data: scatterData,
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Data Distribution'
+            }
+          }
+        }
+      });
+      
+      // Line Plot
+      const lineCtx = document.getElementById('line-plot').getContext('2d');
+      const lineData = {
+        labels: Array.from({length: 20}, (_, i) => i),
+        datasets: [{
+          label: 'Model Loss',
+          data: Array.from({length: 20}, () => Math.random() * 5),
+          borderColor: '#62dafb',
+          tension: 0.4
+        }]
+      };
+      
+      const linePlot = new Chart(lineCtx, {
+        type: 'line',
+        data: lineData,
+        options: {
+          responsive: true,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Training Progress'
+            }
+          }
+        }
+      });
+      
+      // Update data periodically
+      let animating = false;
+      document.getElementById('update-data').addEventListener('click', () => {
+        scatterData.datasets[0].data = Array.from({length: 50}, () => ({
+          x: Math.random() * 100,
+          y: Math.random() * 100
+        }));
+        scatterPlot.update();
+        
+        lineData.datasets[0].data = Array.from({length: 20}, () => Math.random() * 5);
+        linePlot.update();
+      });
+      
+      document.getElementById('toggle-animation').addEventListener('click', function() {
+        animating = !animating;
+        if(animating) {
+          this.textContent = 'Stop Animation';
+          animate();
+        } else {
+          this.textContent = 'Start Animation';
+        }
+      });
+      
+      function animate() {
+        if(!animating) return;
+        
+        lineData.datasets[0].data.shift();
+        lineData.datasets[0].data.push(Math.random() * 5);
+        linePlot.update();
+        
+        setTimeout(animate, 1000);
+      }
+    }
+    
+    // ML Model Demo
+    function initMLDemo() {
+      const canvas = document.getElementById('ml-demo');
+      const ctx = canvas.getContext('2d');
+      let points = [];
+      let trained = false;
+      let weights = { w1: Math.random() - 0.5, w2: Math.random() - 0.5, b: 0 };
+      let learningRate = 0.01;
+      let epoch = 0;
+      let animating = false;
+      
+      function sigmoid(x) {
+        return 1 / (1 + Math.exp(-x));
+      }
+      
+      function predict(x, y) {
+        const z = weights.w1 * x + weights.w2 * y + weights.b;
+        return sigmoid(z);
+      }
+      
+      function drawPoint(x, y, color, confidence = 1) {
+        const normalizedConfidence = Math.abs(confidence - 0.5) * 2;
+        const radius = 5 + (normalizedConfidence * 5);
+        const alpha = 0.3 + (normalizedConfidence * 0.7);
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.globalAlpha = alpha;
+        ctx.fill();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+      
+      function drawDecisionBoundary() {
+        for(let x = 0; x < canvas.width; x += 5) {
+          for(let y = 0; y < canvas.height; y += 5) {
+            const confidence = predict(x / canvas.width, y / canvas.height);
+            const normalizedConfidence = Math.abs(confidence - 0.5) * 2;
+            const alpha = 0.1 + (normalizedConfidence * 0.3);
+            const color = confidence > 0.5 ? `rgba(255, 107, 107, ${alpha})` : `rgba(98, 218, 251, ${alpha})`;
+            ctx.fillStyle = color;
+            ctx.fillRect(x, y, 5, 5);
+          }
+        }
+      }
+      
+      function redraw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if(trained) {
+          drawDecisionBoundary();
+        }
+        
+        points.forEach(p => {
+          const confidence = trained ? predict(p.x / canvas.width, p.y / canvas.height) : 0.5;
+          drawPoint(p.x, p.y, p.class === 1 ? '#62dafb' : '#ff6b6b', confidence);
+        });
+      }
+      
+      function trainStep() {
+        if(points.length < 2) return;
+        
+        let totalLoss = 0;
+        const gradients = { w1: 0, w2: 0, b: 0 };
+        
+        points.forEach(p => {
+          const x = p.x / canvas.width;
+          const y = p.y / canvas.height;
+          const prediction = predict(x, y);
+          const target = p.class === 1 ? 1 : 0;
+          const error = prediction - target;
+          
+          gradients.w1 += error * x;
+          gradients.w2 += error * y;
+          gradients.b += error;
+          
+          totalLoss += Math.pow(error, 2);
+        });
+        
+        weights.w1 -= learningRate * gradients.w1 / points.length;
+        weights.w2 -= learningRate * gradients.w2 / points.length;
+        weights.b -= learningRate * gradients.b / points.length;
+        
+        epoch++;
+        return totalLoss / points.length;
+      }
+      
+      function animate() {
+        if(!animating) return;
+        
+        const loss = trainStep();
+        redraw();
+        
+        if(loss > 0.01 && epoch < 100) {
+          requestAnimationFrame(animate);
+        } else {
+          animating = false;
+          document.getElementById('train-model').textContent = 'Train Model';
+        }
+      }
+      
+      // Add tooltip to explain confidence levels
+      const tooltip = document.createElement('div');
+      tooltip.className = 'ai-tooltip-popup';
+      tooltip.style.position = 'absolute';
+      tooltip.style.display = 'none';
+      tooltip.innerHTML = 'Confidence level shows how certain the model is about its prediction. Higher opacity means higher confidence.';
+      document.querySelector('#ml-demo-section').appendChild(tooltip);
+
+      canvas.addEventListener('mousemove', (e) => {
+        if (!trained) return;
+        const rect = canvas.getBoundingClientRect();
+        const scale = canvas.width / rect.width;
+        const x = (e.clientX - rect.left) * scale;
+        const y = (e.clientY - rect.top) * scale;
+        const confidence = predict(x / canvas.width, y / canvas.height);
+        tooltip.style.left = (e.clientX + 10) + 'px';
+        tooltip.style.top = (e.clientY + 10) + 'px';
+        tooltip.style.display = 'block';
+        tooltip.innerHTML = `Confidence: ${(Math.abs(confidence - 0.5) * 2 * 100).toFixed(1)}%`;
+      });
+
+      canvas.addEventListener('mouseout', () => {
+        tooltip.style.display = 'none';
+      });
+
+      canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const scale = canvas.width / rect.width;
+        const x = (e.clientX - rect.left) * scale;
+        const y = (e.clientY - rect.top) * scale;
+        points.push({x, y, class: y > canvas.height/2 ? -1 : 1});
+        redraw();
+      });
+      
+      document.getElementById('train-model').addEventListener('click', () => {
+        if(points.length < 2) {
+          document.getElementById('train-model').classList.add('shake');
+          setTimeout(() => document.getElementById('train-model').classList.remove('shake'), 500);
+          return;
+        }
+        
+        trained = true;
+        animating = !animating;
+        
+        if(animating) {
+          epoch = 0;
+          weights = { w1: Math.random() - 0.5, w2: Math.random() - 0.5, b: 0 };
+          document.getElementById('train-model').textContent = 'Stop Training';
+          animate();
+        } else {
+          document.getElementById('train-model').textContent = 'Train Model';
+        }
+      });
+      
+      document.getElementById('reset-model').addEventListener('click', () => {
+        points = [];
+        trained = false;
+        animating = false;
+        epoch = 0;
+        weights = { w1: Math.random() - 0.5, w2: Math.random() - 0.5, b: 0 };
+        document.getElementById('train-model').textContent = 'Train Model';
+        redraw();
+      });
+      
+      redraw();
+    }
+    
+    // Initialize all visualizations when DOM is loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      initNeuralNetwork();
+      initDataViz();
+      initMLDemo();
+    });
+  </script>
+</head>
+<body class="bg-darkbg text-darktext">
+  <div id="particles-js" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none;"></div>
+  <!-- Header -->
+  <header>
+    <a href="#" class="logo" tabindex="-1" aria-label="Shehzad Waseem Portfolio">SHEHZAD WASEEM</a>
+    <button class="mobile-menu-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+      <i class="fas fa-bars"></i>
+    </button>
+    <nav aria-label="Primary Navigation" role="navigation">
+      <a href="#about" class="nav-link" aria-current="page">About</a>
+      <a href="#skills" class="nav-link">Skills</a>
+      <a href="#projects" class="nav-link">Projects</a>
+      <a href="#certifications" class="nav-link">Certifications</a>
+      <a href="#hobbies" class="nav-link">Interests</a>
+      <a href="#contact" class="nav-link">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="content-container">
+      <!-- Hero Introduction -->
+      <section id="hero" tabindex="0" aria-label="Hero introduction" class="scroll-reveal" style="position: relative; overflow: hidden;">
+        <h1 class="text-6xl font-playfair font-extrabold tracking-wide select-none text-accent1">
+          Shehzad Waseem
+        </h1>
+        <p class="typed-text" aria-live="polite" aria-atomic="true"></p>
+        <p class="mt-4 text-lg max-w-xl mx-auto text-accent2 font-semibold select-text drop-shadow-md">
+          AI Enthusiast | Machine Learning Student | Problem Solver | Creator
+        </p>
+        <div class="mt-6 flex justify-center gap-8">
+          <a href="#contact" class="inline-block bg-accent1 hover:bg-accent3 text-white font-semibold py-4 px-8 rounded-xl shadow-lg transition-colors" aria-label="Contact Me Button">
+            Contact Me
+          </a>
+          <a href="#projects" class="inline-block border border-accent1 hover:border-accent3 text-accent1 hover:text-accent3 font-semibold py-4 px-8 rounded-xl shadow-lg transition-colors" aria-label="See Projects Button">
+            See Projects
+          </a>
+        </div>
+      </section>
+
+      <!-- About Me -->
+      <section id="about" tabindex="0" aria-label="About Me section" class="scroll-reveal" style="position: relative; overflow: hidden; backdrop-filter: blur(10px); background: rgba(15, 23, 42, 0.7); border-radius: 20px; box-shadow: 0 8px 32px rgba(33, 161, 241, 0.2);">
+        <h2 class="section-title">About Me</h2>
+        <div class="content-wrapper prose prose-invert mx-auto max-w-prose">
+          <p>
+            Hello! I’m Shehzad, a passionate student currently pursuing my Bachelor's degree in <strong>Artificial Intelligence</strong> at NUML (National University of Modern Languages), Islamabad. My journey into AI and Machine Learning is fueled by a deep curiosity for how technology can transform the world around us.
+          </p>
+          <p>
+            I graduated from <strong>PAF College Sargodha</strong>, where I had the honor of serving as the Secretary of the Science Club. This role helped me develop leadership skills and a collaborative spirit that I carry with me today.
+          </p>
+          <p>
+            Outside academics, I have a strong love for flight simulators like <a href="https://flightgear.org/" target="_blank" rel="noopener noreferrer" class="font-semibold underline">FlightGear</a>. This hobby connects my passion for technology and real-world simulations, inspiring me to explore AI applications in aviation and simulation technologies.
+          </p>
+          <blockquote class="font-semibold text-accent1 italic text-xl my-8 border-l-4 border-accent1 pl-6 select-none" aria-label="Career mission statement">
+            "To blend my knowledge of AI and my creative spirit to solve real-world problems and contribute meaningfully to future technologies."
+          </blockquote>
+        </div>
+      </section>
+
+      <!-- AI Skills -->
+      <section id="skills" tabindex="0" aria-label="Skills section" class="scroll-reveal" style="position: relative; overflow: hidden; backdrop-filter: blur(10px); background: rgba(15, 23, 42, 0.7); border-radius: 20px; box-shadow: 0 8px 32px rgba(33, 161, 241, 0.2);">
+        <h2 class="section-title">AI Skills</h2>
+        <div class="content-wrapper max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <h3 class="subheading"><i class="fas fa-robot"></i> AI/ML Frameworks & Libraries</h3>
+            <ul class="list-disc list-inside space-y-3" aria-label="AI and Machine Learning frameworks and libraries">
+              <li>
+                <span class="font-semibold">TensorFlow</span> (Beginner)
+                <div class="skill-bar ai-tooltip" data-tooltip="Deep learning and neural network implementation" aria-valuemin="0" aria-valuemax="100" aria-valuenow="65" role="progressbar" aria-label="TensorFlow skill level">
+                  <div class="skill-bar-inner" style="--level:65%" data-level="65%">
+                    <div class="ai-node" style="left: 65%"></div>
+                  </div>
+                </div>
+              </li>
+              <li>
+                <span class="font-semibold">PyTorch</span> (Beginner)
+                <div class="skill-bar ai-tooltip" data-tooltip="Dynamic neural networks and research implementations" aria-valuemin="0" aria-valuemax="100" aria-valuenow="60" role="progressbar" aria-label="PyTorch skill level">
+                  <div class="skill-bar-inner" style="--level:60%" data-level="60%">
+                    <div class="ai-node" style="left: 60%"></div>
+                  </div>
+                </div>
+              </li>
+              <li>
+                <span class="font-semibold">NumPy</span>
+                <div class="skill-bar ai-tooltip" data-tooltip="Advanced data manipulation and numerical computing" aria-valuemin="0" aria-valuemax="100" aria-valuenow="85" role="progressbar" aria-label="NumPy skill level">
+                  <div class="skill-bar-inner" style="--level:85%" data-level="85%">
+                    <div class="ai-node" style="left: 85%"></div>
+                  </div>
+                </div>
+              </li>
+              <li>
+                <span class="font-semibold">Pandas</span>
+                <div class="skill-bar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="80" role="progressbar" aria-label="Pandas skill level">
+                  <div class="skill-bar-inner" style="--level:80%" data-level="80%"></div>
+                </div>
+              </li>
+              <li>
+                <span class="font-semibold">Matplotlib</span>
+                <div class="skill-bar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="75" role="progressbar" aria-label="Matplotlib skill level">
+                  <div class="skill-bar-inner" style="--level:75%" data-level="75%"></div>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="subheading"><i class="fas fa-code"></i> Programming Languages</h3>
+            <ul class="list-disc list-inside space-y-3" aria-label="Programming languages">
+              <li>
+                <span class="font-semibold">Python</span> (Intermediate)
+                <div class="skill-bar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="75" role="progressbar" aria-label="Python skill level">
+                  <div class="skill-bar-inner" style="--level:75%" data-level="75%"></div>
+                </div>
+              </li>
+              <li>
+                <span class="font-semibold">Java</span> (Beginner)
+                <div class="skill-bar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" role="progressbar" aria-label="Java skill level">
+                  <div class="skill-bar-inner" style="--level:50%" data-level="50%"></div>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div class="md:col-span-2">
+            <h3 class="subheading"><i class="fas fa-tools"></i> Supporting Tools</h3>
+            <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 list-none max-w-4xl mx-auto" aria-label="Supporting tools">
+              <li class="ai-tooltip" data-tooltip="Creating interactive dashboards and AI analytics visualizations"><i class="fas fa-chart-bar ai-animated-icon"></i> Power BI – Data visualization for AI insights</li>
+              <li class="ai-tooltip" data-tooltip="Database design and querying for AI applications"><i class="fas fa-database ai-animated-icon"></i> SQL (Basics) – Data management for AI projects</li>
+              <li class="ai-tooltip" data-tooltip="Collaborative AI development and code versioning"><i class="fab fa-github ai-animated-icon"></i> GitHub – Version control for AI codebases</li>
+              <li class="ai-tooltip" data-tooltip="Integrated development environment for AI/ML projects"><i class="fas fa-code ai-animated-icon"></i> VS Code – Development environment for AI programming</li>
+            </ul>
+          </div>
+          <div class="md:col-span-2">
+            <h3 class="subheading"><i class="fas fa-user-friends"></i> Soft Skills</h3>
+            <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 list-none max-w-4xl mx-auto" aria-label="Soft skills">
+              <li><i class="fas fa-crown"></i> Leadership – Secretary & project lead experience</li>
+              <li><i class="fas fa-chalkboard-teacher"></i> Tutoring – Explaining complex AI concepts effectively</li>
+              <li><i class="fas fa-microphone"></i> Public Speaking – Presenting AI topics and tutorials</li>
+              <li><i class="fas fa-tasks"></i> Project Management – Organizing AI coursework and projects</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Interactive AI Visualizations -->
+      <section id="ai-demos" class="scroll-reveal mb-16" aria-label="Interactive AI Demonstrations">
+        <h2 class="section-title">AI & ML Demonstrations</h2>
+        
+        <!-- Neural Network Visualization -->
+        <div class="demo-container p-6 bg-darkcard rounded-xl mb-8">
+          <h3 class="subheading"><i class="fas fa-brain"></i> Neural Network Architecture</h3>
+          <div class="mb-4 text-sm text-darktext">
+            <p class="mb-2">Explore how neural networks are structured:</p>
+            <ul class="list-disc list-inside space-y-1">
+              <li>Visualize a basic neural network architecture</li>
+              <li>Use controls below to add or remove hidden layers</li>
+              <li>Watch how the network adapts to different complexities</li>
+            </ul>
+          </div>
+          <canvas id="neural-network" width="800" height="400" class="mx-auto bg-darkbg rounded-lg"></canvas>
+          <div class="controls mt-4 flex justify-center gap-4">
+            <button id="add-layer" class="px-4 py-2 bg-accent1 rounded-lg hover:bg-accent2 transition-colors">Add Layer</button>
+            <button id="remove-layer" class="px-4 py-2 bg-accent3 rounded-lg hover:bg-accent4 transition-colors">Remove Layer</button>
+          </div>
+        </div>
+
+        <!-- Object Detection Animation Demo -->
+        <div class="demo-container p-6 bg-darkcard rounded-xl mb-8">
+          <h3 class="subheading"><i class="fas fa-robot"></i> AI Object Detection Visualization</h3>
+          <div class="mb-4 text-sm text-darktext">
+            <p class="mb-2">Watch how AI detects and identifies objects:</p>
+            <ul class="list-disc list-inside space-y-1">
+              <li>Visual representation of object detection process</li>
+              <li>Interactive bounding box animations</li>
+              <li>Feature extraction visualization</li>
+            </ul>
+          </div>
+          <div class="relative w-full max-w-2xl mx-auto">
+            <canvas id="detection-demo" class="w-full rounded-lg bg-darkbg"></canvas>
+          </div>
+          <div class="controls mt-4 flex justify-center gap-4">
+            <button id="toggle-animation" class="px-4 py-2 bg-accent1 rounded-lg hover:bg-accent2 transition-colors">Start Animation</button>
+            <button id="toggle-detection" class="px-4 py-2 bg-accent3 rounded-lg hover:bg-accent4 transition-colors" disabled>Toggle Detection</button>
+          </div>
+        </div>
+
+        <!-- Data Visualization -->
+        <div class="demo-container p-6 bg-darkcard rounded-xl mb-8 overflow-hidden">
+          <h3 class="subheading"><i class="fas fa-chart-line"></i> Data Analysis & Visualization</h3>
+          <div class="mb-4 text-sm text-darktext">
+            <p class="mb-2">Interactive data visualization demo:</p>
+            <ul class="list-disc list-inside space-y-1">
+              <li>Left: Scatter plot showing data distribution</li>
+              <li>Right: Line plot displaying training metrics</li>
+              <li>Use 'Update Data' to generate new random datasets</li>
+              <li>Toggle animation to see real-time data updates</li>
+            </ul>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <canvas id="scatter-plot" class="bg-darkbg rounded-lg w-full"></canvas>
+            <canvas id="line-plot" class="bg-darkbg rounded-lg w-full"></canvas>
+          </div>
+          <div class="controls mt-4 flex justify-center gap-4">
+            <button id="update-data" class="px-4 py-2 bg-accent1 rounded-lg hover:bg-accent2 transition-colors">Update Data</button>
+            <button id="toggle-animation" class="px-4 py-2 bg-accent3 rounded-lg hover:bg-accent4 transition-colors">Toggle Animation</button>
+          </div>
+        </div>
+
+        <!-- Machine Learning Model Demo -->
+        <section id="ml-demo-section" class="mb-12 p-6 bg-darkcard rounded-xl shadow-lg">
+          <h3 class="text-2xl mb-4">Interactive ML Model Demo</h3>
+          
+          <div class="mb-6 text-sm text-darktext">
+            <p class="mb-2">This interactive demo shows how a neural network learns to classify data points:</p>
+            <ol class="list-decimal list-inside space-y-2">
+              <li>Click anywhere on the canvas to add data points</li>
+              <li>Points above the middle are classified as red</li>
+              <li>Points below the middle are classified as blue</li>
+              <li>Click "Train Model" to see the neural network learn in real-time</li>
+              <li>Watch how the decision boundary adapts and confidence levels change</li>
+              <li>Use "Reset Model" to start over with new data points</li>
+            </ol>
+          </div>
+
+          <div class="relative">
+            <canvas id="ml-demo" width="600" height="400" class="w-full bg-darkbg rounded-lg shadow-inner cursor-pointer"></canvas>
+            
+            <div class="flex justify-center gap-4 mt-4">
+              <button id="train-model" class="px-6 py-2 bg-accent1 hover:bg-accent2 text-white rounded-lg transition-colors shadow-md">
+                Train Model
+              </button>
+              <button id="reset-model" class="px-6 py-2 bg-accent4 hover:bg-accent5 text-white rounded-lg transition-colors shadow-md">
+                Reset Model
+              </button>
+            </div>
+            
+            <div class="mt-4 text-sm text-center text-darktext">
+              <p>Hover over the canvas to see prediction confidence levels</p>
+              <div class="gradient-legend mt-2 h-4 rounded-lg" style="background: linear-gradient(to right, rgba(98, 218, 251, 0.2), rgba(98, 218, 251, 1))"></div>
+              <div class="flex justify-between text-xs mt-1">
+                <span>Low Confidence</span>
+                <span>High Confidence</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- AI Projects -->
+      <section id="projects" tabindex="0" aria-label="Projects section" class="scroll-reveal" style="position: relative; overflow: hidden; backdrop-filter: blur(10px); background: rgba(15, 23, 42, 0.7); border-radius: 20px; box-shadow: 0 8px 32px rgba(33, 161, 241, 0.2);">
+    <div class="project-glow" style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at center, rgba(98, 218, 251, 0.1) 0%, transparent 70%); pointer-events: none; z-index: -1; animation: rotate 20s linear infinite;"></div>
+        <h2 class="section-title">AI Projects</h2>
+        <div class="content-wrapper max-w-4xl mx-auto space-y-20">
+          <article>
+            <h3 class="subheading"><i class="fas fa-brain"></i> AI/ML Coursework Projects</h3>
+            <p>
+              Built image classification models using convolutional neural networks (CNNs), practiced tensor manipulation, and explored deep learning architectures. These projects strengthened my practical AI skills and understanding of model training and evaluation.
+            </p>
+          </article>
+          <article>
+            <h3 class="subheading"><i class="fas fa-chart-bar"></i> Data Analytics Practice Projects</h3>
+            <p>
+              Created interactive dashboards with Power BI and performed data cleaning and analysis using Python libraries like Pandas and Matplotlib. These projects support AI workflows by enabling data-driven insights and visualization.
+            </p>
+          </article>
+          <article>
+            <h3 class="subheading"><i class="fas fa-solar-panel"></i> Dual Axis Solar Tracker (2019)</h3>
+            <p>
+              Developed using Arduino Uno, this project integrates sensor data and control algorithms to dynamically track the sun’s movement, improving solar energy efficiency. It provided hands-on experience with embedded systems and real-time data processing, foundational for AI-driven IoT applications.
+            </p>
+          </article>
+          <article>
+            <h3 class="subheading"><i class="fab fa-youtube"></i> FlightGear YouTube Content</h3>
+            <p>
+              Created detailed tutorials and reviews on FlightGear flight simulator, focusing on aircraft systems and mods. This content bridges my passion for aviation and technology, highlighting simulation’s role in AI research and training environments.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- Certifications -->
+      <section id="certifications" tabindex="0" aria-label="Certifications section" class="scroll-reveal">
+        <h2 class="section-title">Certifications</h2>
+        <div class="content-wrapper max-w-3xl mx-auto">
+          <ul class="list-disc list-inside space-y-5" aria-label="Certifications list">
+            <li>
+              <strong>TensorFlow Developer Certification</strong> – Ongoing certification via <a href="https://www.freecodecamp.org/" target="_blank" rel="noopener noreferrer" class="font-semibold underline">FreeCodeCamp</a>, focusing on deep learning and AI model development.
+            </li>
+            <li>
+              <strong>Applied AI Lab Course</strong> – In progress at <a href="https://worldquantuniversity.org/" target="_blank" rel="noopener noreferrer" class="font-semibold underline">WorldQuant University</a>, covering practical AI applications and research.
+            </li>
+            <li>
+              <strong>PAF College Sargodha Science Club Secretary</strong> – Leadership role demonstrating organizational and scientific engagement.
+            </li>
+            <li>
+              Additional internal AI-related certifications and workshops (details available upon request).
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Interests -->
+      <section id="hobbies" tabindex="0" aria-label="Interests section" class="scroll-reveal">
+        <h2 class="section-title">Interests</h2>
+        <div class="content-wrapper max-w-3xl mx-auto">
+          <ul class="space-y-14 text-lg">
+            <li class="flex items-center gap-6">
+              <i class="fas fa-plane-departure text-accent1 text-5xl flex-shrink-0 drop-shadow-xl"></i>
+              <p>
+                <strong>Aviation & Simulation:</strong> Exploring AI applications in flight simulators and advanced aviation technology.
+              </p>
+            </li>
+            <li class="flex items-center gap-6">
+              <i class="fas fa-microchip text-accent1 text-5xl flex-shrink-0 drop-shadow-xl"></i>
+              <p>
+                <strong>AI & Tech Innovation:</strong> Keeping up with emerging AI trends and breakthroughs.
+              </p>
+            </li>
+            <li class="flex items-center gap-6">
+              <i class="fab fa-youtube text-red-600 text-5xl flex-shrink-0 drop-shadow-lg"></i>
+              <p>
+                <strong>Content Creation:</strong> Producing educational videos and tutorials on AI, aviation, and technology.
+              </p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Inspirational Quote -->
+      <section class="quote-section scroll-reveal" tabindex="0" aria-label="Inspirational quote">
+        <p>
+          "Learning to soar through the skies and the realms of AI, one line of code at a time."
+        </p>
+      </section>
+
+      <!-- Contact Section -->
+      <section id="contact" tabindex="0" aria-label="Contact section" class="scroll-reveal">
+        <h2 class="section-title">Contact</h2>
+        <div class="content-wrapper max-w-md mx-auto space-y-10">
+          <a href="mailto:thedownloader049@gmail.com" class="contact-link" aria-label="Email Address">
+            <i class="fas fa-envelope"></i> thedownloader049@gmail.com
+          </a>
+          <a href="https://github.com/shehzadwaseem" target="_blank" rel="noopener noreferrer" class="contact-link" aria-label="GitHub Profile">
+            <i class="fab fa-github"></i> github.com/Shehzad3684
+          </a>
+          <div class="contact-link" aria-label="LinkedIn Coming Soon">
+            <i class="fab fa-linkedin"></i> <span class="italic text-gray-400 select-text">LinkedIn: Coming Soon</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Back to top button -->
+  <button id="back-to-top" aria-label="Back to top" title="Back to top" type="button">
+    <i class="fas fa-angle-up text-white text-3xl"></i>
+  </button>
+
+  <div id="particles-js"></div>
+
+  <!-- Optimized Neural Network Canvas -->
+  <canvas id="neural-canvas" aria-hidden="true" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 5; pointer-events: none; filter: drop-shadow(0 0 6px #62dafbcc);"></canvas>
+
+  <!-- Parallax Background Elements -->
+  <div class="parallax-container" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 1; pointer-events: none; overflow: hidden;">
+    <div class="parallax-layer" data-speed="0.2" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, rgba(98, 218, 251, 0.08) 0%, transparent 60%);"></div>
+    <div class="parallax-layer" data-speed="0.4" style="position: absolute; top: -20%; left: -20%; width: 140%; height: 140%; background: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"1\" fill=\"rgba(98, 218, 251, 0.15)\"/></svg>') repeat; background-size: 5% 5%;"></div>
+    <div class="parallax-layer" data-speed="0.6" style="position: absolute; top: -30%; left: -30%; width: 160%; height: 160%; background: url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"><circle cx=\"50\" cy=\"50\" r=\"0.5\" fill=\"rgba(33, 161, 241, 0.1)\"/></svg>') repeat; background-size: 3% 3%;"></div>
+  </div>
+
+  <!-- Cursor follower -->
+  <div id="cursor-follower" aria-hidden="true" style="mix-blend-mode: normal; background-color: #62dafb;"></div>
+
+  <script>
+    // Typed text effect for hero
+    const typedTextElem = document.querySelector('.typed-text');
+    const phrases = [
+      "AI Enthusiast.",
+      "Machine Learning Student.",
+      "Data Science Explorer.",
+      "Creative Problem Solver.",
+      "Future AI Innovator."
+    ];
+    let phraseIndex = 0;
+    let letterIndex = 0;
+    let currentPhrase = '';
+    let isDeleting = false;
+    let typingSpeed = 100;
+
+    function type() {
+      if (phraseIndex >= phrases.length) phraseIndex = 0;
+      currentPhrase = phrases[phraseIndex];
+
+      if(!isDeleting && letterIndex <= currentPhrase.length){
+        typedTextElem.textContent = currentPhrase.substring(0, letterIndex);
+        letterIndex++;
+      } else if(isDeleting && letterIndex >= 0){
+        typedTextElem.textContent = currentPhrase.substring(0, letterIndex);
+        letterIndex--;
+      }
+
+      if(letterIndex === currentPhrase.length) {
+        isDeleting = true;
+        typingSpeed = 1500;
+      } else if(letterIndex === 0 && isDeleting){
+        isDeleting = false;
+        phraseIndex++;
+        typingSpeed = 300;
+      } else {
+        typingSpeed = isDeleting ? 60 : 110;
+      }
+      setTimeout(type, typingSpeed);
+    }
+    type();
+
+    // IntersectionObserver for fade-ins
+    const faders = document.querySelectorAll('.fade-in');
+    const appearOptions = { threshold: 0.15, rootMargin: '0px 0px -100px 0px'};
+    const appearOnScroll = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          entry.target.style.animationPlayState = 'running';
+          observer.unobserve(entry.target);
+        }
+      });
+    }, appearOptions);
+    faders.forEach(fader => {
+      fader.style.animationPlayState = 'paused';
+      appearOnScroll.observe(fader);
+    });
+
+    // Skill bars animation on scroll
+    const skillBars = document.querySelectorAll('.skill-bar-inner');
+    const skillsObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting) {
+          const bar = entry.target.querySelector('.skill-bar-inner') || entry.target;
+          if(bar.dataset.level) {
+            bar.style.width = bar.dataset.level;
+          }
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.8 });
+    skillBars.forEach(bar => {
+      skillsObserver.observe(bar.parentElement);
+    });
+
+    // Optimized Neural network Canvas animation
+    const canvas = document.getElementById('neural-canvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+    let nodes = [];
+    const MAX_NODES = 40; // Limit node count
+    let maxDistance = 120; // Reduced max connection length
+    let connectionDistance = 90; // Reduced mouse connection length
+
+    function resize() {
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width * devicePixelRatio;
+      canvas.height = height * devicePixelRatio;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.setTransform(1,0,0,1,0,0);
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+    }
+    window.addEventListener('resize', () => {
+      resize();
+      initNodes();
+    });
+    resize();
+
+    class Node {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 0.4; // slower velocity
+        this.vy = (Math.random() - 0.5) * 0.4;
+        this.radius = 5 + Math.random() * 3;
+      }
+      move() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if(this.x < 0 || this.x > width) this.vx *= -1;
+        if(this.y < 0 || this.y > height) this.vy *= -1;
+      }
+      draw() {
+        ctx.beginPath();
+        let grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius*2);
+        grad.addColorStop(0, 'rgba(98, 218, 251, 0.6)');
+        grad.addColorStop(1, 'rgba(33, 161, 241, 0.05)');
+        ctx.fillStyle = grad;
+        ctx.shadowColor = 'rgba(98, 218, 251, 0.5)';
+        ctx.shadowBlur = 8;
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.closePath();
+      }
+    }
+
+    function distance(a, b) {
+      return Math.hypot(a.x-b.x, a.y-b.y);
+    }
+
+    // Mobile menu functionality
+    const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+    const nav = document.querySelector('nav');
+    const navLinks = document.querySelectorAll('nav a');
+
+    mobileMenuBtn.addEventListener('click', () => {
+      nav.classList.toggle('active');
+      mobileMenuBtn.setAttribute('aria-expanded', nav.classList.contains('active'));
+      mobileMenuBtn.innerHTML = nav.classList.contains('active') ? 
+        '<i class="fas fa-times"></i>' : 
+        '<i class="fas fa-bars"></i>';
+    });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!nav.contains(e.target) && !mobileMenuBtn.contains(e.target) && nav.classList.contains('active')) {
+        nav.classList.remove('active');
+        mobileMenuBtn.setAttribute('aria-expanded', 'false');
+        mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+      }
+    });
+
+    // Smooth scroll for navigation links
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetId = link.getAttribute('href');
+        const targetSection = document.querySelector(targetId);
+        if (targetSection) {
+          targetSection.scrollIntoView({ behavior: 'smooth' });
+          if (nav.classList.contains('active')) {
+            nav.classList.remove('active');
+            mobileMenuBtn.setAttribute('aria-expanded', 'false');
+            mobileMenuBtn.innerHTML = '<i class="fas fa-bars"></i>';
+          }
+        }
+      });
+    });
+
+    // Active section highlighting
+    const sections = document.querySelectorAll('section[id]');
+    window.addEventListener('scroll', () => {
+      const scrollY = window.pageYOffset;
+      sections.forEach(section => {
+        const sectionHeight = section.offsetHeight;
+        const sectionTop = section.offsetTop - 100;
+        const sectionId = section.getAttribute('id');
+        const navLink = document.querySelector(`nav a[href="#${sectionId}"]`);
+        if (scrollY > sectionTop && scrollY <= sectionTop + sectionHeight) {
+          navLink?.classList.add('active');
+        } else {
+          navLink?.classList.remove('active');
+        }
+      });
+    });
+
+    // Cache pairs once for efficiency
+    let nodePairs = [];
+
+    let animationFrameId;
+    let lastTime = 0;
+    const FPS = 30;
+    const frameDelay = 1000 / FPS;
+
+    function initNodes() {
+      nodes = [];
+      nodePairs = [];
+      const nodeCount = window.innerWidth < 768 ? Math.floor(MAX_NODES / 2) : MAX_NODES;
+      for(let i = 0; i < nodeCount; i++) {
+        nodes.push(new Node(Math.random() * width, Math.random() * height));
+      }
+      for(let i=0; i < nodes.length; i++){
+        for(let j=i+1; j < nodes.length; j++){
+          nodePairs.push([nodes[i], nodes[j]]);
+        }
+      }
+    }
+    initNodes();
+
+    let mouse = null;
+    window.addEventListener('mousemove', e => {
+      mouse = {x: e.clientX, y: e.clientY};
+    });
+    window.addEventListener('mouseout', e => {
+      mouse = null;
+    });
+
+    let frameCount = 0;
+    // Parallax effect for background layers
+window.addEventListener('mousemove', e => {
+  document.querySelectorAll('.parallax-layer').forEach(layer => {
+    const speed = layer.getAttribute('data-speed');
+    const x = (window.innerWidth - e.pageX * speed) / 100;
+    const y = (window.innerHeight - e.pageY * speed) / 100;
+    layer.style.transform = `translateX(${x}px) translateY(${y}px)`;
+  });
+});
+
+// Intersection Observer for project cards
+const projectObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.project-card').forEach(card => {
+  projectObserver.observe(card);
+});
+
+function animateNetwork() {
+      frameCount++;
+      if(frameCount % 2 === 0){ // throttle to 30fps
+        ctx.clearRect(0, 0, width, height);
+        nodes.forEach(node => node.move());
+        nodes.forEach(node => node.draw());
+        // Draw connections at throttle
+        for(let [a,b] of nodePairs){
+          const dist = distance(a,b);
+          if(dist < maxDistance){
+            ctx.lineWidth = 1 - dist / maxDistance;
+            ctx.strokeStyle = `rgba(98, 218, 251, ${1 - dist / maxDistance * 0.75})`;
+            ctx.shadowColor = 'rgba(98, 218, 251, 0.3)';
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+            ctx.closePath();
+          }
+        }
+        if(mouse){
+          nodes.forEach(node => {
+            if(distance(node, mouse) < connectionDistance){
+              ctx.beginPath();
+              ctx.strokeStyle = 'rgba(98, 218, 251, 0.85)';
+              ctx.lineWidth = 1.8;
+              ctx.shadowColor = 'rgba(98, 218, 251, 0.4)';
+              ctx.shadowBlur = 12;
+              ctx.moveTo(node.x, node.y);
+              ctx.lineTo(mouse.x, mouse.y);
+              ctx.stroke();
+              ctx.closePath();
+              // Glow around mouse
+              ctx.beginPath();
+              let grad = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 14);
+              grad.addColorStop(0, 'rgba(98, 218, 251, 0.4)');
+              grad.addColorStop(1, 'transparent');
+              ctx.fillStyle = grad;
+              ctx.arc(mouse.x, mouse.y, 14, 0, Math.PI*2);
+              ctx.fill();
+              ctx.closePath();
+            }
+          });
+        }
+      }
+      requestAnimationFrame(animateNetwork);
+    }
+    animateNetwork();
+
+    // Cursor follower animation
+    const cursorFollower = document.getElementById('cursor-follower');
+    let mouseX = 0, mouseY = 0;
+    let posX = 0, posY = 0;
+    const speed = 0.22;
+    window.addEventListener('mousemove', e => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      cursorFollower.style.backgroundColor = '#62dafb';
+    });
+    window.addEventListener('mouseout', () => {
+      cursorFollower.style.backgroundColor = '#2196f475';
+    });
+    // Scroll reveal animation
+const scrollObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.scroll-reveal').forEach(element => {
+  scrollObserver.observe(element);
+});
+
+function animateCursor() {
+      posX += (mouseX - posX) * speed;
+      posY += (mouseY - posY) * speed;
+      cursorFollower.style.transform = `translate3d(${posX - 14}px, ${posY - 14}px, 0) rotate(${posX * 0.015}deg)`;
+      requestAnimationFrame(animateCursor);
+    }
+    animateCursor();
+
+    // Back to top button
+    const backToTop = document.getElementById('back-to-top');
+    window.addEventListener('scroll', () => {
+      if(window.scrollY > 400) {
+        backToTop.classList.add('visible');
+      } else {
+        backToTop.classList.remove('visible');
+      }
+      // Update nav active
+      const sections = document.querySelectorAll('main section[id]');
+      const scrollPos = window.scrollY + 130;
+      sections.forEach(section => {
+        const top = section.offsetTop;
+        const bottom = top + section.offsetHeight;
+        const navLink = document.querySelector('nav a[href="#' + section.id + '"]');
+        if(navLink) {
+          if(scrollPos >= top && scrollPos < bottom){
+            navLink.classList.add('active');
+          } else {
+            navLink.classList.remove('active');
+          }
+        }
+      });
+    });
+    backToTop.addEventListener('click', () => {
+      window.scrollTo({top:0, behavior:'smooth'});
+    });
+
+    // Smooth scroll nav and aria current update
+    document.querySelectorAll('nav a.nav-link').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const id = link.getAttribute('href').slice(1);
+        document.getElementById(id).scrollIntoView({behavior:'smooth'});
+        document.querySelectorAll('nav a').forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+      });
+    });
+
+    // Dark mode toggle with persistence
+    const darkToggle = document.getElementById('dark-mode-toggle');
+    const darkIcon = darkToggle.querySelector('i');
+    function enableDarkMode() {
+      document.documentElement.classList.add('dark');
+      darkIcon.classList.replace('fa-moon', 'fa-sun');
+      darkToggle.setAttribute('aria-pressed', 'true');
+      localStorage.setItem('darkMode', 'enabled');
+    }
+    function disableDarkMode() {
+      document.documentElement.classList.remove('dark');
+      darkIcon.classList.replace('fa-sun', 'fa-moon');
+      darkToggle.setAttribute('aria-pressed', 'false');
+      localStorage.setItem('darkMode', 'disabled');
+    }
+    function toggleDarkMode(){
+      if(document.documentElement.classList.contains('dark')){
+        disableDarkMode();
+      } else {
+        enableDarkMode();
+      }
+    }
+    darkToggle.addEventListener('click', toggleDarkMode);
+    darkToggle.addEventListener('keypress', e => {
+      if(e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleDarkMode();
+      }
+    });
+    // Initialize dark mode from localStorage or system preference
+    if(localStorage.getItem('darkMode') === 'enabled' ) {
+      enableDarkMode();
+    } else if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      enableDarkMode();
+    }
+  </script>
+  <script>
+  particlesJS('particles-js', {
+    particles: {
+      number: { value: 80, density: { enable: true, value_area: 800 } },
+      color: { value: '#8a2be2' },
+      shape: { type: 'circle' },
+      opacity: {
+        value: 0.5,
+        random: false,
+        anim: { enable: false }
+      },
+      size: {
+        value: 3,
+        random: true,
+        anim: { enable: false }
+      },
+      line_linked: {
+        enable: true,
+        distance: 150,
+        color: '#4169e1',
+        opacity: 0.4,
+        width: 1
+      },
+      move: {
+        enable: true,
+        speed: 2,
+        direction: 'none',
+        random: false,
+        straight: false,
+        out_mode: 'out',
+        bounce: false,
+        attract: { enable: false }
+      }
+    },
+    interactivity: {
+      detect_on: 'canvas',
+      events: {
+        onhover: { enable: true, mode: 'repulse' },
+        onclick: { enable: true, mode: 'push' },
+        resize: true
+      },
+      modes: {
+        repulse: { distance: 100, duration: 0.4 },
+        push: { particles_nb: 4 }
+      }
+    },
+    retina_detect: true
+  });
+  </script>
+</body>
+  <script>
+    // Particles.js Configuration
+    particlesJS('particles-js', {
+      particles: {
+        number: { value: 80, density: { enable: true, value_area: 800 } },
+        color: { value: '#62dafb' },
+        shape: {
+          type: ['circle', 'triangle'],
+          stroke: { width: 0, color: '#21a1f1' },
+          polygon: { nb_sides: 6 }
+        },
+        opacity: {
+          value: 0.6,
+          random: true,
+          anim: { enable: true, speed: 1, opacity_min: 0.1, sync: false }
+        },
+        size: {
+          value: 4,
+          random: true,
+          anim: { enable: true, speed: 2, size_min: 0.1, sync: false }
+        },
+        line_linked: {
+          enable: true,
+          distance: 150,
+          color: '#62dafb',
+          opacity: 0.4,
+          width: 1
+        },
+        move: {
+          enable: true,
+          speed: 2,
+          direction: 'none',
+          random: true,
+          straight: false,
+          out_mode: 'out',
+          bounce: false,
+          attract: { enable: true, rotateX: 600, rotateY: 1200 }
+        }
+      },
+      interactivity: {
+        detect_on: 'canvas',
+        events: {
+          onhover: { enable: true, mode: 'repulse' },
+          onclick: { enable: true, mode: 'push' },
+          resize: true
+        },
+        modes: {
+          repulse: { distance: 100, duration: 0.4 },
+          push: { particles_nb: 4 }
+        }
+      },
+      retina_detect: true
+    });
+
+    // Neural Network Visualization
+    function createNeuralNetwork() {
+      const container = document.querySelector('#hero');
+      const width = container.offsetWidth;
+      const height = container.offsetHeight;
+      const layers = 3;
+      const nodesPerLayer = 4;
+      const nodes = [];
+      const connections = [];
+
+      for (let l = 0; l < layers; l++) {
+        for (let n = 0; n < nodesPerLayer; n++) {
+          const node = document.createElement('div');
+          node.className = 'ai-node';
+          node.style.left = `${(l + 1) * (width / (layers + 1))}px`;
+          node.style.top = `${(n + 1) * (height / (nodesPerLayer + 1))}px`;
+          container.appendChild(node);
+          nodes.push(node);
+
+          if (l > 0) {
+            for (let pn = 0; pn < nodesPerLayer; pn++) {
+              const connection = document.createElement('div');
+              connection.className = 'ai-connection';
+              const prevNode = nodes[(l-1) * nodesPerLayer + pn];
+              const dx = node.offsetLeft - prevNode.offsetLeft;
+              const dy = node.offsetTop - prevNode.offsetTop;
+              const length = Math.sqrt(dx * dx + dy * dy);
+              const angle = Math.atan2(dy, dx);
+              connection.style.width = `${length}px`;
+              connection.style.transform = `rotate(${angle}rad)`;
+              connection.style.left = `${prevNode.offsetLeft + 6}px`;
+              connection.style.top = `${prevNode.offsetTop + 6}px`;
+              container.appendChild(connection);
+              connections.push(connection);
+            }
+          }
+        }
+      }
+    }
+
+    // AI Tooltips
+    function initTooltips() {
+      const tooltips = document.querySelectorAll('.ai-tooltip');
+      tooltips.forEach(element => {
+        const tooltip = document.createElement('div');
+        tooltip.className = 'ai-tooltip-popup';
+        tooltip.textContent = element.dataset.tooltip;
+        tooltip.style.display = 'none';
+        document.body.appendChild(tooltip);
+
+        element.addEventListener('mouseenter', (e) => {
+          tooltip.style.display = 'block';
+          const rect = element.getBoundingClientRect();
+          tooltip.style.top = `${rect.top - tooltip.offsetHeight - 10}px`;
+          tooltip.style.left = `${rect.left + (rect.width - tooltip.offsetWidth) / 2}px`;
+        });
+
+        element.addEventListener('mouseleave', () => {
+          tooltip.style.display = 'none';
+        });
+      });
+    }
+
+    // Animated Icons
+    function initAnimatedIcons() {
+      const icons = document.querySelectorAll('.ai-animated-icon');
+      icons.forEach(icon => {
+        icon.addEventListener('mouseenter', () => {
+          icon.classList.add('ai-icon-animate');
+        });
+        icon.addEventListener('mouseleave', () => {
+          icon.classList.remove('ai-icon-animate');
+        });
+      });
+    }
+
+    // Object Detection Animation Demo
+    let isAnimationActive = false;
+    let animationFrame;
+    const canvas = document.getElementById('detection-demo');
+    const ctx = canvas.getContext('2d');
+    const toggleAnimationBtn = document.getElementById('toggle-animation');
+
+    // Sample objects to detect with icons
+    const sampleObjects = [
+      { name: 'Person', confidence: 0.98, color: '#62dafb', icon: '👤' },
+      { name: 'Car', confidence: 0.95, color: '#21a1f1', icon: '🚗' },
+      { name: 'Dog', confidence: 0.92, color: '#a3e5ff', icon: '🐕' }
+    ];
+
+    // Animation properties
+    let frame = 0;
+    const boxProps = {
+      width: 200,
+      height: 200,
+      glowIntensity: 0
+    };
+
+    // Initialize canvas
+    function initCanvas() {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = 400 * dpr;
+      canvas.style.width = `${rect.width}px`;
+      canvas.style.height = '400px';
+      ctx.scale(dpr, dpr);
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, rect.width, 400);
+    }
+
+    // Draw scanning effect
+    function drawScanningEffect() {
+      const scanLineY = (frame % 200);
+      const gradient = ctx.createLinearGradient(0, scanLineY - 10, 0, scanLineY + 10);
+      gradient.addColorStop(0, 'rgba(98, 218, 251, 0)');
+      gradient.addColorStop(0.5, 'rgba(98, 218, 251, 0.3)');
+      gradient.addColorStop(1, 'rgba(98, 218, 251, 0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, scanLineY - 10, canvas.width, 20);
+    }
+
+    // Draw object icon
+    function drawIcon(x, y, icon) {
+      ctx.font = '48px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(icon, x + boxProps.width/2, y + boxProps.height/2);
+    }
+
+    // Draw bounding box with glow effect
+    function drawBoundingBox(x, y, width, height, confidence, label, color) {
+      const glowAmount = Math.sin(frame * 0.05) * 0.5 + 0.5;
+      const scale = 1 + Math.sin(frame * 0.05) * 0.02;
+      
+      // Draw glow effect
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 15 * glowAmount;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      
+      // Draw animated box
+      ctx.save();
+      ctx.translate(x + width/2, y + height/2);
+      ctx.scale(scale, scale);
+      ctx.strokeRect(-width/2, -height/2, width, height);
+      ctx.restore();
+      
+      // Reset shadow
+      ctx.shadowBlur = 0;
+
+      // Draw label with fade effect
+      const labelOpacity = (Math.sin(frame * 0.05) * 0.2 + 0.8);
+      ctx.fillStyle = `rgba(15, 23, 42, ${labelOpacity})`;
+      ctx.fillRect(x, y - 30, label.length * 8 + 80, 25);
+      
+      // Draw label text
+      ctx.fillStyle = color;
+      ctx.font = 'bold 16px Montserrat';
+      ctx.fillText(`${label} ${Math.round(confidence * 100)}%`, x + 5, y - 12);
+    }
+
+    // Draw feature points with pulse effect
+    function drawFeaturePoints(x, y, width, height, color) {
+      const points = [];
+      const numPoints = 12;
+      const radius = 3;
+      
+      // Generate fixed points in a grid pattern
+      for(let i = 0; i < numPoints; i++) {
+        const row = Math.floor(i / 3);
+        const col = i % 3;
+        points.push({
+          x: x + width * (col + 1) / 4,
+          y: y + height * (row + 1) / 4,
+          phase: i * Math.PI / 6
+        });
+      }
+
+      points.forEach(point => {
+        const pulseScale = 1 + Math.sin(frame * 0.1 + point.phase) * 0.3;
+        const pointRadius = radius * pulseScale;
+        
+        // Draw point glow
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, pointRadius + 2, 0, Math.PI * 2);
+        ctx.fillStyle = `${color}33`;
+        ctx.fill();
+        
+        // Draw point
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, pointRadius, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+      });
+    }
+
+    // Main animation loop
+    function animate() {
+      if (!isAnimationActive) return;
+
+      // Clear canvas
+      ctx.fillStyle = '#0f172a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw scanning effect
+      drawScanningEffect();
+
+      // Animate objects
+      sampleObjects.forEach((obj, index) => {
+        const x = 50 + (index * 250);
+        const y = 100;
+        drawIcon(x, y, obj.icon);
+        drawBoundingBox(x, y, boxProps.width, boxProps.height, obj.confidence, obj.name, obj.color);
+        drawFeaturePoints(x, y, boxProps.width, boxProps.height, obj.color);
+      });
+
+      frame++;
+      animationFrame = requestAnimationFrame(animate);
+    }
+
+    // Initialize demo
+    initCanvas();
+    // Start animation by default
+    isAnimationActive = true;
+    animate();
+
+    // Toggle animation
+    toggleAnimationBtn.addEventListener('click', () => {
+      isAnimationActive = !isAnimationActive;
+      toggleAnimationBtn.textContent = isAnimationActive ? 'Stop Animation' : 'Start Animation';
+      if (isAnimationActive) {
+        animate();
+      } else {
+        cancelAnimationFrame(animationFrame);
+      }
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', initCanvas);
+
+          faces.forEach(face => {
+            // Draw face mesh
+            ctx.strokeStyle = '#21a1f1';
+            ctx.lineWidth = 1;
+            face.mesh.forEach(point => {
+              ctx.beginPath();
+              ctx.arc(point[0], point[1], 1, 0, 2 * Math.PI);
+              ctx.stroke();
+            });
+          });
+        } catch (error) {
+          console.error('Detection error:', error);
+        }
+      }
+
+      requestAnimationFrame(detectObjects);
+    }
+
+    // Add AI tooltips to AI icons and keywords
+    document.querySelectorAll('.ai-tooltip').forEach(el => {
+  el.addEventListener('mouseenter', function(e) {
+    let tip = document.createElement('div');
+    tip.className = 'ai-tooltip-popup';
+    tip.innerText = el.dataset.tooltip;
+    document.body.appendChild(tip);
+    const rect = el.getBoundingClientRect();
+    tip.style.left = rect.left + window.scrollX + rect.width/2 - tip.offsetWidth/2 + 'px';
+    tip.style.top = rect.top + window.scrollY - tip.offsetHeight - 12 + 'px';
+    el._tip = tip;
+  });
+  el.addEventListener('mouseleave', function() {
+    if(el._tip) {
+      el._tip.remove();
+      el._tip = null;
+    }
+  });
+});
+// Animated hover for AI icons
+const aiIcons = document.querySelectorAll('.ai-animated-icon');
+aiIcons.forEach(icon => {
+  icon.addEventListener('mouseenter', () => {
+    icon.classList.add('ai-icon-animate');
+  });
+  icon.addEventListener('mouseleave', () => {
+    icon.classList.remove('ai-icon-animate');
+  });
+});
+// Neural network canvas: add node on click, highlight connections on hover
+canvas.addEventListener('click', e => {
+  const rect = canvas.getBoundingClientRect();
+  const x = (e.clientX - rect.left) * (canvas.width / rect.width) / devicePixelRatio;
+  const y = (e.clientY - rect.top) * (canvas.height / rect.height) / devicePixelRatio;
+  if(nodes.length < MAX_NODES + 10) {
+    nodes.push(new Node(x, y));
+    nodePairs = [];
+    for(let i=0; i < nodes.length; i++){
+      for(let j=i+1; j < nodes.length; j++){
+        nodePairs.push([nodes[i], nodes[j]]);
+      }
+    }
+  }
+});
+canvas.addEventListener('mousemove', e => {
+  const rect = canvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (canvas.width / rect.width) / devicePixelRatio;
+  const my = (e.clientY - rect.top) * (canvas.height / rect.height) / devicePixelRatio;
+  nodes.forEach(node => {
+    node.isHighlighted = (distance(node, {x:mx, y:my}) < 30);
+  });
+});
+// Section transitions
+const allSections = document.querySelectorAll('section');
+allSections.forEach(section => {
+  section.addEventListener('transitionend', () => {
+    section.classList.remove('section-transition');
+  });
+  section.addEventListener('mouseenter', () => {
+    section.classList.add('section-transition');
+  });
+  section.addEventListener('mouseleave', () => {
+    section.classList.remove('section-transition');
+  });
+});
+// Update Node draw to show highlight
+document.addEventListener('DOMContentLoaded', () => {
+  Node.prototype.draw = function() {
+    ctx.beginPath();
+    let grad = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius*2);
+    grad.addColorStop(0, this.isHighlighted ? 'rgba(255, 255, 0, 0.8)' : 'rgba(98, 218, 251, 0.6)');
+    grad.addColorStop(1, 'rgba(33, 161, 241, 0.05)');
+    ctx.fillStyle = grad;
+    ctx.shadowColor = this.isHighlighted ? 'rgba(255,255,0,0.7)' : 'rgba(98, 218, 251, 0.5)';
+    ctx.shadowBlur = this.isHighlighted ? 16 : 8;
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.closePath();
+  };
+});
+</script>
+</html>
